@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancela / Substitui — Contratos</title>
+<style>
+:root {
+  --bg: #fafaf7;
+  --surface: #ffffff;
+  --surface-2: #f4f4ef;
+  --surface-locked: #f9f7f1;
+  --border: rgba(0,0,0,0.1);
+  --border-strong: rgba(0,0,0,0.22);
+  --text: #1f1f1d;
+  --text-2: #6b6b66;
+  --text-3: #9e9e98;
+  --accent: #1e3a5f;
+  --orange: #b45309;
+  --orange-dark: #92400e;
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --danger-bg: #fee2e2;
+  --danger-text: #991b1b;
+  --success-bg: #d1fae5;
+  --success-text: #065f46;
+  --info-bg: #dbeafe;
+  --info-text: #1e40af;
+  --editable-tint: #fffbeb;
+  --editable-border: #fbbf24;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh;
+}
+input, select, textarea, button { font-family: inherit; }
+input[type=text], input[type=number], input[type=date] {
+  background: transparent; border: none; outline: none;
+  color: var(--text); width: 100%; font-size: 12px; padding: 1px 2px;
+}
+input::placeholder, textarea::placeholder { color: var(--text-3); }
+
+.container { max-width: 1500px; margin: 0 auto; padding: 16px 20px; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+.brand { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+.brand-title { font-size: 15px; font-weight: 500; color: var(--text); margin-top: 2px; }
+.user-info { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 10px; }
+.user-info button { font-size: 11px; padding: 3px 8px; cursor: pointer; background: transparent; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--text-2); }
+.user-info button:hover { background: var(--surface-2); }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+.ctrl-bar { background: var(--surface); border: 0.5px solid var(--border); border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.ctrl-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ctrl-label { font-size: 10px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; }
+.ctrl-divider { width: 1px; height: 22px; background: var(--border); }
+
+.num-picker { display: inline-flex; align-items: center; border: 0.5px solid var(--border-strong); border-radius: 4px; overflow: hidden; }
+.num-picker button { padding: 2px 9px; font-size: 13px; background: transparent; border: none; cursor: pointer; color: var(--text); font-weight: 500; }
+.num-picker button:hover { background: var(--surface-2); }
+.num-picker button:disabled { color: var(--text-3); cursor: not-allowed; }
+.num-picker span { padding: 2px 10px; font-size: 12px; font-weight: 500; min-width: 28px; text-align: center; border-left: 0.5px solid var(--border); border-right: 0.5px solid var(--border); }
+
+.chk-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.chk-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; font-size: 11px; border: 0.5px solid var(--border-strong); border-radius: 12px; cursor: pointer; user-select: none; background: var(--surface); color: var(--text-2); transition: all 0.12s; }
+.chk-pill:hover { background: var(--surface-2); }
+.chk-pill input { display: none; }
+.chk-pill.checked { background: var(--editable-tint); border-color: var(--editable-border); color: var(--orange-dark); font-weight: 500; }
+.chk-pill .check-mark { display: none; font-weight: 600; }
+.chk-pill.checked .check-mark { display: inline; }
+
+.cols-grid { display: grid; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.col-hdr { padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; }
+.col-hdr span { font-size: 11px; font-weight: 600; color: white; letter-spacing: 0.07em; text-transform: uppercase; }
+.frow { padding: 5px 8px; border-bottom: 0.5px solid var(--border); min-height: 38px; }
+.flbl { font-size: 10px; font-weight: 500; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; display: block; }
+.two-c { display: grid; grid-template-columns: 1fr 1fr; }
+.two-c .lft { padding: 5px 8px; border-right: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); min-height: 38px; }
+.two-c .rgt { padding: 5px 8px; border-bottom: 0.5px solid var(--border); min-height: 38px; }
+
+.locked { background: var(--surface-locked); }
+.locked .val-display { font-size: 12px; color: var(--text-3); font-style: italic; }
+.editable { background: var(--editable-tint); }
+.editable input[type=text], .editable input[type=number], .editable input[type=date] { font-weight: 500; }
+
+.search-input { width: 100%; padding: 4px 6px; font-size: 12px; border: 0.5px solid var(--border-strong); border-radius: 3px; background: var(--surface); color: var(--text); outline: none; }
+.search-input:focus { border-color: var(--accent); }
+
+.search-row { display: flex; gap: 4px; margin-top: 2px; align-items: stretch; }
+.search-row .search-input { flex: 1; }
+.search-row .lupa-btn { padding: 0 10px; font-size: 13px; cursor: pointer; background: var(--accent); color: white; border: 0.5px solid var(--accent); border-radius: 3px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.search-row .lupa-btn:hover { opacity: 0.88; }
+
+.results-list { margin-top: 4px; max-height: 180px; overflow-y: auto; border: 0.5px solid var(--border); border-radius: 3px; background: var(--surface); }
+.results-list .res-item { padding: 5px 8px; font-size: 12px; cursor: pointer; border-bottom: 0.5px solid var(--border); color: var(--text); }
+.results-list .res-item:last-child { border-bottom: none; }
+.results-list .res-item:hover { background: var(--editable-tint); }
+.results-empty { padding: 8px; font-size: 11px; color: var(--text-3); text-align: center; font-style: italic; }
+.results-count { padding: 4px 8px; font-size: 10px; color: var(--text-3); background: var(--surface-2); border-bottom: 0.5px solid var(--border); }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; background: var(--success-bg); color: var(--success-text); border-radius: 3px; font-size: 12px; font-weight: 500; }
+.chip-x { cursor: pointer; opacity: 0.7; font-weight: 600; padding: 0 2px; }
+.chip-x:hover { opacity: 1; }
+
+.contract-select { width: 100%; padding: 4px 6px; font-size: 12px; border: 0.5px solid var(--border-strong); border-radius: 3px; background: var(--surface); color: var(--text); outline: none; cursor: pointer; }
+.contract-select:disabled { background: var(--surface-locked); color: var(--text-3); cursor: not-allowed; }
+
+.pbtn { padding: 2px 10px; font-size: 11px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--border-strong); border-radius: 3px; background: transparent; color: var(--text-2); }
+.pbtn.nao { background: var(--orange); color: white; border-color: var(--orange); }
+.pbtn.sim { background: #15803d; color: white; border-color: #15803d; }
+
+.abtn { padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 4px; border: 0.5px solid var(--border-strong); background: var(--surface); color: var(--text-2); transition: opacity 0.15s; }
+.abtn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+.abtn.orange { background: var(--orange); color: white; border-color: var(--orange); }
+.abtn.sm { padding: 3px 10px; font-size: 11px; }
+.abtn.lg { padding: 10px 22px; font-size: 14px; font-weight: 500; }
+.abtn:hover { opacity: 0.85; }
+.abtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.drop-zone { border: 1.5px dashed var(--border-strong); border-radius: 8px; padding: 28px; text-align: center; cursor: pointer; background: var(--surface); }
+.drop-zone:hover, .drop-zone.over { background: var(--surface-2); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; border-radius: 3px; font-weight: 500; }
+.badge.warn { background: var(--warning-bg); color: var(--warning-text); }
+.badge.ok { background: var(--success-bg); color: var(--success-text); }
+.badge.danger { background: var(--danger-bg); color: var(--danger-text); }
+
+.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 6px; padding: 14px; }
+
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.file-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 0.5px solid var(--border); border-radius: 5px; cursor: pointer; background: var(--surface); margin-bottom: 6px; }
+.file-item:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.file-icon { width: 28px; height: 28px; background: var(--info-bg); color: var(--info-text); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+
+.hidden { display: none !important; }
+
+.empty-state { text-align: center; padding: 28px 18px; background: var(--surface); border: 0.5px dashed var(--border-strong); border-radius: 6px; color: var(--text-2); font-size: 13px; }
+
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+  .topbar, .ctrl-bar { display: none !important; }
+  .container { max-width: 100%; padding: 0; }
+  .screen { display: block !important; }
+  #s-login, #s-files { display: none !important; }
+  #s-form { display: block !important; }
+  .cols-grid { overflow-x: visible; }
+  .editable { background: transparent; }
+}
+</style>
+</head>
+<body>
+
+<script>
+window.CONFIG = {
+  msalClientId: "REPLACE_WITH_AZURE_AD_CLIENT_ID",
+  tenantId:     "REPLACE_WITH_AZURE_AD_TENANT_ID",
+  sharePointHost: "ciprod.sharepoint.com",
+  sitePath:       "/sites/BarterBrasil",
+  folderPath:     "Base de dados/Controles"
+};
+</script>
+
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<div class="container">
+
+<div class="topbar no-print">
+  <div>
+    <div class="brand">CANCELA / SUBSTITUI</div>
+    <div class="brand-title">Substituição e Desmembramento de Contratos</div>
+  </div>
+  <div class="user-info" id="user-info"></div>
+</div>
+
+<div id="s-login" class="screen">
+  <div class="card" style="max-width: 460px; margin: 60px auto; text-align: center;">
+    <div style="font-size: 32px; margin-bottom: 12px;">🔐</div>
+    <div style="font-size: 17px; font-weight: 500; margin-bottom: 6px;">Entrar com Microsoft</div>
+    <div style="font-size: 13px; color: var(--text-2); margin-bottom: 22px;">Use sua conta corporativa para acessar os contratos diretamente do SharePoint.</div>
+    <button class="abtn primary lg" id="btn-login" onclick="doLogin()">
+      <span style="display: inline-flex; align-items: center; gap: 8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="2" width="9" height="9" fill="#F25022"/><rect x="13" y="2" width="9" height="9" fill="#7FBA00"/>
+          <rect x="2" y="13" width="9" height="9" fill="#00A4EF"/><rect x="13" y="13" width="9" height="9" fill="#FFB900"/>
+        </svg>Entrar com Microsoft
+      </span>
+    </button>
+    <div id="login-status" style="margin-top: 16px; font-size: 12px;"></div>
+    <div style="margin-top: 24px; padding-top: 18px; border-top: 0.5px solid var(--border); font-size: 12px; color: var(--text-3);">
+      Ou <a href="#" onclick="goManualUpload();return false;" style="color: var(--accent);">faça upload manual de um arquivo</a>
+    </div>
+  </div>
+</div>
+
+<div id="s-files" class="screen">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+    <div>
+      <div style="font-size: 16px; font-weight: 500;">Selecione um arquivo</div>
+      <div style="font-size: 12px; color: var(--text-2);" id="folder-info"></div>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <button class="abtn sm" id="btn-refresh" onclick="loadFiles()">↻ Atualizar</button>
+      <button class="abtn sm" onclick="document.getElementById('manual-up').classList.toggle('hidden')">Upload manual</button>
+    </div>
+  </div>
+  <div id="files-status"></div>
+  <div id="files-list"></div>
+  <div id="manual-up" class="hidden" style="margin-top: 18px;">
+    <div class="drop-zone" id="dz" onclick="document.getElementById('fi').click()" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="hDrop(event)">
+      <div style="font-size: 28px; margin-bottom: 8px;">📊</div>
+      <div style="font-size: 13px; font-weight: 500; margin-bottom: 3px;">Arraste um arquivo Excel aqui</div>
+      <div style="font-size: 11px; color: var(--text-2);">.xlsx ou .xls (com aba ZSD_GG2037 opcional)</div>
+    </div>
+    <input type="file" id="fi" accept=".xlsx,.xls" style="display:none" onchange="loadFLocal(this)">
+  </div>
+</div>
+
+<div id="s-form" class="screen">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;" class="no-print">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="abtn sm" onclick="goFilePicker()">← Trocar arquivo</button>
+      <div id="file-info" style="font-size: 12px; color: var(--text-2);"></div>
+      <div id="zsd-badge"></div>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <button onclick="clearF()" class="abtn sm">Limpar</button>
+      <button onclick="window.print()" class="abtn sm primary">Imprimir / PDF</button>
+    </div>
+  </div>
+
+  <div class="ctrl-bar no-print">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Tipo Op.</span>
+      <button onclick="setTipo('COMPRA')" id="btn-COMPRA" class="abtn sm orange">COMPRA</button>
+      <button onclick="setTipo('VENDA')" id="btn-VENDA" class="abtn sm">VENDA</button>
+    </div>
+    <div class="ctrl-divider"></div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Desmembramento</span>
+      <div class="num-picker">
+        <button onclick="setDesmemb(STATE.desmembramento - 1)" id="desm-minus">−</button>
+        <span id="desm-val">1</span>
+        <button onclick="setDesmemb(STATE.desmembramento + 1)" id="desm-plus">+</button>
+      </div>
+      <span style="font-size: 10px; color: var(--text-3);">(quadros "Atual")</span>
+    </div>
+    <div class="ctrl-divider"></div>
+    <div class="ctrl-group" style="flex: 1; min-width: 280px;">
+      <span class="ctrl-label">O que vai mudar</span>
+      <div class="chk-row" id="chk-changes"></div>
+    </div>
+  </div>
+
+  <div id="hint-bar" style="margin-bottom: 10px;" class="no-print"></div>
+  <div id="cols-grid" class="cols-grid"></div>
+
+  <div style="margin-top: 10px; border: 0.5px solid var(--border-strong); border-radius: 4px; overflow: hidden;">
+    <div style="background: #374151; padding: 6px 10px;">
+      <span style="font-size: 11px; font-weight: 600; color: white; text-transform: uppercase; letter-spacing: 0.06em;">Motivo / Justificativa</span>
+    </div>
+    <textarea id="motivo" rows="3" placeholder="Descreva o motivo da substituição ou desmembramento..." style="padding: 8px 10px; resize: vertical; font-size: 12px; color: var(--text); background: var(--surface); width: 100%; border: none; outline: none; font-family: inherit;"></textarea>
+  </div>
+
+  <div style="margin-top: 12px; display: flex; justify-content: flex-end;" class="no-print">
+    <button onclick="window.print()" class="abtn primary">Imprimir / Salvar PDF</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ════════════ State ════════════
+const STATE = {
+  dataAnterior: blank(),
+  dataAtual: [blank()],
+  desmembramento: 1,
+  changedKeys: new Set(),
+  tipoOp: "COMPRA",
+  clients: [],
+  contractsForClient: [],
+  clientSearchResults: [],
+  clientSearchQuery: ""
+};
+
+let msalInstance = null;
+let cachedSiteId = null;
+let cachedAccessToken = null;
+let mainR = [], zsdR = [];
+let currentFileName = "";
+let prevScreen = "s-files";
+
+const SCOPES = ["Files.Read.All", "Sites.Read.All", "User.Read"];
+
+// Column indices (0-based): A=0 ... K=10 L=11 N=13 O=14 P=15 R=17 Y=24 Z=25 AA=26 AB=27 AC=28 ... BM=64
+const C  = { K:10, L:11, N:13, O:14, P:15, R:17, Y:24, Z:25, AA:26, AB:27, AC:28, BM:64 };
+const Z2 = { SUM:28, CRIT:59 }; // ZSD_GG2037: sum=AC, criteria=BH
+
+// "O que vai mudar" options — priority order matches user request
+const CHANGE_OPTS = [
+  { key: "vol",        label: "Volume",         fields: ["volContrato", "volEntregue"] },
+  { key: "preco",      label: "Preço",          fields: ["preco"] },
+  { key: "modal",      label: "Modal",          fields: ["modal", "superficie"] },
+  { key: "frete",      label: "Valor Frete",    fields: ["valorFrete"] },
+  { key: "embalagem",  label: "Embalagem",      fields: ["embalagem"] },
+  { key: "inicio",     label: "Prazo Inicial",  fields: ["inicioEntrega"] },
+  { key: "final",      label: "Prazo Final",    fields: ["finalEntrega"] },
+  { key: "moeda",      label: "Moeda",          fields: ["moeda"] },
+  { key: "vencimento", label: "Vencimento",     fields: ["dataPagamento"] },
+  { key: "produto",    label: "Produto",        fields: ["produto"] },
+  { key: "pago",       label: "Status Pagto.",  fields: ["pago"] }
+];
+
+// Fields that are ALWAYS editable in Atual columns (new contracts have new CTRs/Pedidos)
+const ALWAYS_EDITABLE_IN_ATUAL = new Set(["ctr", "pedido"]);
+
+function blank() {
+  return { ctr:"", pedido:"", fornecedor:"", volContrato:"", volEntregue:"", produto:"", pago:"NÃO", modal:"CIF", superficie:"ASFALTO", valorFrete:"", moeda:"", preco:"", embalagem:"", inicioEntrega:"", finalEntrega:"", dataPagamento:"" };
+}
+
+// ════════════ Field-editable logic ════════════
+function isFieldEditableInAtual(fieldKey) {
+  if (ALWAYS_EDITABLE_IN_ATUAL.has(fieldKey)) return true;
+  for (const opt of CHANGE_OPTS) {
+    if (STATE.changedKeys.has(opt.key) && opt.fields.includes(fieldKey)) return true;
+  }
+  return false;
+}
+
+// ════════════ Screen navigation ════════════
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id)?.classList.add("active");
+}
+function goManualUpload() {
+  showScreen("s-files");
+  document.getElementById("manual-up").classList.remove("hidden");
+  document.getElementById("folder-info").textContent = "Upload manual — sem conexão com SharePoint";
+  document.getElementById("files-list").innerHTML = "";
+  document.getElementById("btn-refresh").style.display = "none";
+}
+function goFilePicker() {
+  if (msalInstance && cachedAccessToken) { showScreen("s-files"); loadFiles(); }
+  else if (msalInstance) { showScreen("s-login"); }
+  else { goManualUpload(); }
+}
+
+// ════════════ MSAL ════════════
+function isMsalConfigured() {
+  return CONFIG.msalClientId && CONFIG.msalClientId !== "REPLACE_WITH_AZURE_AD_CLIENT_ID"
+      && CONFIG.tenantId && CONFIG.tenantId !== "REPLACE_WITH_AZURE_AD_TENANT_ID";
+}
+function initMsal() {
+  if (!isMsalConfigured()) return null;
+  return new msal.PublicClientApplication({
+    auth: {
+      clientId: CONFIG.msalClientId,
+      authority: `https://login.microsoftonline.com/${CONFIG.tenantId}`,
+      redirectUri: window.location.origin + window.location.pathname
+    },
+    cache: { cacheLocation: "sessionStorage", storeAuthStateInCookie: false }
+  });
+}
+async function doLogin() {
+  const btn = document.getElementById("btn-login");
+  const status = document.getElementById("login-status");
+  btn.disabled = true;
+  status.innerHTML = '<span class="spinner"></span> Abrindo janela de login...';
+  try {
+    const result = await msalInstance.loginPopup({ scopes: SCOPES, prompt: "select_account" });
+    cachedAccessToken = result.accessToken;
+    setUserInfo(result.account);
+    showScreen("s-files"); loadFiles();
+  } catch (err) {
+    status.innerHTML = `<span class="badge danger">Erro: ${err.message || err}</span>`;
+    btn.disabled = false;
+  }
+}
+async function doLogout() {
+  try {
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) await msalInstance.logoutPopup({ account: accounts[0] });
+  } catch (e) {}
+  cachedAccessToken = null; cachedSiteId = null;
+  setUserInfo(null); showScreen("s-login");
+}
+async function getToken() {
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length === 0) throw new Error("Não está logado");
+  try {
+    const resp = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: accounts[0] });
+    cachedAccessToken = resp.accessToken; return resp.accessToken;
+  } catch (err) {
+    const resp = await msalInstance.acquireTokenPopup({ scopes: SCOPES });
+    cachedAccessToken = resp.accessToken; return resp.accessToken;
+  }
+}
+function setUserInfo(account) {
+  const el = document.getElementById("user-info");
+  if (!account) { el.innerHTML = ""; return; }
+  el.innerHTML = `<span>${account.username || account.name}</span><button onclick="doLogout()">Sair</button>`;
+}
+
+// ════════════ Graph API ════════════
+async function graphFetch(url) {
+  const token = await getToken();
+  const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!resp.ok) throw new Error(`Graph API ${resp.status}: ${await resp.text()}`);
+  return resp;
+}
+async function getSiteId() {
+  if (cachedSiteId) return cachedSiteId;
+  const url = `https://graph.microsoft.com/v1.0/sites/${CONFIG.sharePointHost}:${CONFIG.sitePath}`;
+  const resp = await graphFetch(url);
+  cachedSiteId = (await resp.json()).id;
+  return cachedSiteId;
+}
+async function listFolderFiles() {
+  const siteId = await getSiteId();
+  const url = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeURIComponent(CONFIG.folderPath)}:/children?$top=200`;
+  const data = await (await graphFetch(url)).json();
+  return (data.value || []).filter(item => item.file && /\.(xlsx|xls)$/i.test(item.name));
+}
+async function downloadFileFromSharePoint(itemId) {
+  const siteId = await getSiteId();
+  const url = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${itemId}/content`;
+  return await (await graphFetch(url)).arrayBuffer();
+}
+async function loadFiles() {
+  const statusEl = document.getElementById("files-status");
+  const listEl = document.getElementById("files-list");
+  document.getElementById("folder-info").textContent = `📁 ${CONFIG.sitePath} / ${CONFIG.folderPath}`;
+  statusEl.innerHTML = '<div style="padding: 12px;"><span class="spinner"></span> Carregando arquivos...</div>';
+  listEl.innerHTML = "";
+  try {
+    const files = await listFolderFiles();
+    statusEl.innerHTML = "";
+    if (files.length === 0) { listEl.innerHTML = '<div class="empty-state">Nenhum arquivo Excel encontrado.</div>'; return; }
+    files.sort((a, b) => new Date(b.lastModifiedDateTime || 0) - new Date(a.lastModifiedDateTime || 0));
+    listEl.innerHTML = files.map(f => {
+      const modified = f.lastModifiedDateTime ? new Date(f.lastModifiedDateTime).toLocaleString("pt-BR") : "";
+      const size = f.size ? (f.size / 1048576).toFixed(2) + " MB" : "";
+      return `<div class="file-item" onclick="pickFile('${f.id}','${escapeAttr(f.name)}')">
+        <div class="file-icon">XL</div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(f.name)}</div>
+          <div style="font-size: 11px; color: var(--text-3); margin-top: 2px;">${modified} • ${size}</div>
+        </div>
+        <div style="color: var(--text-3); font-size: 18px;">→</div>
+      </div>`;
+    }).join("");
+  } catch (err) {
+    statusEl.innerHTML = `<div class="badge danger" style="display: block; padding: 10px;">Erro: ${err.message}</div>`;
+  }
+}
+async function pickFile(itemId, fileName) {
+  const statusEl = document.getElementById("files-status");
+  statusEl.innerHTML = `<div style="padding: 12px;"><span class="spinner"></span> Baixando "${escapeHtml(fileName)}"...</div>`;
+  try {
+    const buffer = await downloadFileFromSharePoint(itemId);
+    currentFileName = fileName; parseAndShow(buffer);
+  } catch (err) {
+    statusEl.innerHTML = `<div class="badge danger" style="display: block; padding: 10px;">Erro: ${err.message}</div>`;
+  }
+}
+
+// ════════════ Manual upload ════════════
+function hDrop(e) {
+  e.preventDefault(); document.getElementById("dz").classList.remove("over");
+  const f = e.dataTransfer.files[0]; if (f) loadFLocal({ files: [f] });
+}
+function loadFLocal(inp) {
+  const f = inp.files[0]; if (!f) return;
+  currentFileName = f.name;
+  const r = new FileReader();
+  r.onload = ev => parseAndShow(ev.target.result);
+  r.readAsArrayBuffer(f);
+}
+
+// ════════════ Parse Excel ════════════
+let currentWb = null;
+
+function findSalesPosSheet(sheetNames) {
+  const norm = s => s.toLowerCase().replace(/[\s_\-]/g, "");
+  // 1. Exact match (case + space/underscore insensitive): "sales_pos", "Sales Pos", "SalesPos", etc.
+  for (const n of sheetNames) if (norm(n) === "salespos") return n;
+  // 2. Contains both "sales" and "pos"
+  for (const n of sheetNames) {
+    const ln = n.toLowerCase();
+    if (ln.includes("sales") && ln.includes("pos")) return n;
+  }
+  // 3. Just "pos" but not ZSD
+  for (const n of sheetNames) {
+    const ln = n.toLowerCase();
+    if (ln.includes("pos") && !ln.includes("zsd")) return n;
+  }
+  return null;
+}
+
+function loadSheet(sheetName) {
+  if (!currentWb || !currentWb.Sheets[sheetName]) return;
+  const ms = currentWb.Sheets[sheetName];
+  mainR = XLSX.utils.sheet_to_json(ms, { header: 1, defval: "", raw: true });
+
+  // Recompute everything
+  STATE.dataAnterior = blank();
+  STATE.dataAtual = STATE.dataAtual.map(() => blank());
+  STATE.contractsForClient = [];
+  STATE.clientSearchResults = [];
+  STATE.clientSearchQuery = "";
+  buildClientList();
+  updateFileInfo(sheetName);
+  renderColumns();
+}
+
+function updateFileInfo(activeSheet) {
+  if (!currentWb) return;
+  const rows = mainR.length - 1;
+  const sheets = currentWb.SheetNames;
+  const sheetOpts = sheets.map(n => `<option value="${escapeAttr(n)}" ${n === activeSheet ? "selected" : ""}>${escapeHtml(n)}</option>`).join("");
+  const sheetSelector = sheets.length > 1
+    ? `<select onchange="loadSheet(this.value)" style="font-size: 11px; padding: 2px 6px; border: 0.5px solid var(--border-strong); border-radius: 3px; background: var(--surface); margin-left: 6px;">${sheetOpts}</select>`
+    : `<strong>${escapeHtml(activeSheet)}</strong>`;
+  document.getElementById("file-info").innerHTML =
+    `📊 ${escapeHtml(currentFileName)} • aba: ${sheetSelector} • <strong>${rows.toLocaleString("pt-BR")}</strong> linha(s)`;
+}
+
+function parseAndShow(arrayBuffer) {
+  try {
+    currentWb = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
+    const sheetNames = currentWb.SheetNames;
+
+    // Auto-detect Sales_Pos
+    let mainSheetName = findSalesPosSheet(sheetNames);
+    if (!mainSheetName) mainSheetName = sheetNames[0];
+
+    const ms = currentWb.Sheets[mainSheetName];
+    mainR = XLSX.utils.sheet_to_json(ms, { header: 1, defval: "", raw: true });
+
+    // ZSD sheet (look by name with fuzzy match too)
+    let zsdSheetName = null;
+    for (const n of sheetNames) {
+      const ln = n.toLowerCase().replace(/[\s_\-]/g, "");
+      if (ln.includes("zsd") && ln.includes("gg2037")) { zsdSheetName = n; break; }
+    }
+    if (!zsdSheetName) zsdSheetName = sheetNames.find(n => n === "ZSD_GG2037");
+
+    if (zsdSheetName) {
+      zsdR = XLSX.utils.sheet_to_json(currentWb.Sheets[zsdSheetName], { header: 1, defval: "", raw: true });
+      document.getElementById("zsd-badge").innerHTML = `<span class="badge ok">✓ Aba "${escapeHtml(zsdSheetName)}" carregada (${(zsdR.length - 1).toLocaleString("pt-BR")} linhas)</span>`;
+    } else {
+      zsdR = [];
+      document.getElementById("zsd-badge").innerHTML = '<span class="badge warn">⚠ ZSD_GG2037 não encontrada — Vol. Entregue = 0</span>';
+    }
+
+    updateFileInfo(mainSheetName);
+    buildClientList();
+    renderChangeChecks();
+    renderColumns();
+    showScreen("s-form");
+
+    // Warn if auto-detection picked first sheet (no Sales_Pos match)
+    if (!findSalesPosSheet(sheetNames) && sheetNames.length > 1) {
+      const hint = document.getElementById("hint-bar");
+      hint.innerHTML = `<div class="badge warn" style="padding: 7px 12px;">⚠ Não encontrei aba chamada "Sales_Pos" no arquivo. Carregada aba <strong>"${escapeHtml(mainSheetName)}"</strong>. Use o seletor de abas acima se for a errada.</div>`;
+    }
+  } catch (err) { alert("Erro ao ler arquivo: " + err.message); }
+}
+
+// ════════════ Helpers ════════════
+function pNum(v) {
+  if (v === null || v === undefined || v === "") return 0;
+  if (typeof v === "number") return v;
+  const s = String(v).trim();
+  if (s.includes(",") && s.includes(".")) return parseFloat(s.replace(/\./g, "").replace(",", ".")) || 0;
+  if (s.includes(",") && !s.includes(".")) return parseFloat(s.replace(",", ".")) || 0;
+  return parseFloat(s) || 0;
+}
+function fmtDate(v) {
+  if (!v || v === "") return "";
+  if (v instanceof Date) return v.toLocaleDateString("pt-BR");
+  if (typeof v === "number") {
+    try { const d = XLSX.SSF.parse_date_code(v); if (d) return `${String(d.d).padStart(2,"0")}/${String(d.m).padStart(2,"0")}/${d.y}`; } catch(e) {}
+  }
+  return String(v);
+}
+function getC(row, idx) { return (!row || row[idx] === undefined || row[idx] === null) ? "" : row[idx]; }
+function getStr(row, idx) { return String(getC(row, idx)).trim(); }
+function escapeHtml(s) { return String(s||"").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function escapeAttr(s) { return String(s||"").replace(/'/g, "\\'").replace(/"/g, "&quot;"); }
+
+// ════════════ SUMIFS ════════════
+function sumVolContrato(contract8) {
+  let s = 0;
+  for (let i = 1; i < mainR.length; i++) {
+    const bm = getStr(mainR[i], C.BM);
+    if (bm.substring(0, 8) === contract8) s += pNum(getC(mainR[i], C.P));
+  }
+  return s;
+}
+function sumVolEntregue(pedidoFull) {
+  if (!zsdR.length || !pedidoFull) return 0;
+  let s = 0;
+  for (let i = 1; i < zsdR.length; i++) {
+    if (String(getC(zsdR[i], Z2.CRIT)).trim() === pedidoFull) s += pNum(getC(zsdR[i], Z2.SUM));
+  }
+  return s;
+}
+
+// ════════════ Client / Contract dropdowns ════════════
+function buildClientList() {
+  const set = new Set();
+  for (let i = 1; i < mainR.length; i++) {
+    const v = getStr(mainR[i], C.K);
+    if (v) set.add(v);
+  }
+  STATE.clients = [...set].sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+function buildContractListForClient(clientName) {
+  const set = new Set();
+  for (let i = 1; i < mainR.length; i++) {
+    if (getStr(mainR[i], C.K) === clientName) {
+      const ctr8 = getStr(mainR[i], C.BM).substring(0, 8);
+      if (ctr8) set.add(ctr8);
+    }
+  }
+  STATE.contractsForClient = [...set].sort();
+}
+
+// ── Client search (manual, only on button click / Enter) ──
+function searchClients() {
+  const input = document.getElementById("client-search-input");
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  STATE.clientSearchQuery = q;
+  if (!q) {
+    STATE.clientSearchResults = [];
+  } else {
+    // Match substring (case-insensitive, accent-insensitive)
+    const qNorm = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    STATE.clientSearchResults = STATE.clients.filter(c => {
+      const cNorm = c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return cNorm.includes(qNorm);
+    }).slice(0, 100);
+  }
+  renderClientSearchArea();
+}
+
+function onClientSearchKeydown(e) {
+  if (e.key === "Enter") { e.preventDefault(); searchClients(); }
+}
+
+function selectClient(clientName) {
+  STATE.dataAnterior.fornecedor = clientName;
+  STATE.dataAnterior.ctr = "";
+  STATE.dataAnterior.pedido = "";
+  STATE.clientSearchResults = [];
+  STATE.clientSearchQuery = "";
+  buildContractListForClient(clientName);
+  renderColumns();
+}
+
+function clearClientSelection() {
+  STATE.dataAnterior = blank();
+  STATE.dataAtual = STATE.dataAtual.map(() => blank());
+  STATE.contractsForClient = [];
+  STATE.clientSearchResults = [];
+  STATE.clientSearchQuery = "";
+  renderColumns();
+}
+
+function onContractSelect(value) {
+  if (!value) {
+    STATE.dataAnterior.ctr = "";
+    STATE.dataAnterior.pedido = "";
+    renderColumns();
+    return;
+  }
+  // Find first matching row for client + ctr8
+  const clientName = STATE.dataAnterior.fornecedor;
+  let firstRow = null, pedidoFull = "";
+  for (let i = 1; i < mainR.length; i++) {
+    if (getStr(mainR[i], C.K) === clientName) {
+      const bm = getStr(mainR[i], C.BM);
+      if (bm.substring(0, 8) === value) { firstRow = mainR[i]; pedidoFull = bm; break; }
+    }
+  }
+  if (!firstRow) { renderColumns(); return; }
+  const volC = sumVolContrato(value);
+  const volE = sumVolEntregue(pedidoFull);
+  STATE.dataAnterior = {
+    ctr: value,
+    pedido: pedidoFull,
+    fornecedor: clientName,
+    volContrato: volC > 0 ? volC.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "",
+    volEntregue: volE.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
+    produto: getStr(firstRow, C.L),
+    pago: "NÃO",
+    modal: getStr(firstRow, C.O) || "CIF",
+    superficie: "ASFALTO",
+    valorFrete: getStr(firstRow, C.R),
+    moeda: getStr(firstRow, C.AB),
+    preco: getStr(firstRow, C.AC),
+    embalagem: getStr(firstRow, C.N),
+    inicioEntrega: fmtDate(getC(firstRow, C.Z)),
+    finalEntrega: fmtDate(getC(firstRow, C.AA)),
+    dataPagamento: fmtDate(getC(firstRow, C.Y))
+  };
+  syncAtualFromAnterior(true);
+  renderColumns();
+}
+
+function renderClientSearchArea() {
+  // Only update the search results portion, not the whole grid
+  const wrap = document.getElementById("client-results-wrap");
+  if (!wrap) return;
+  const results = STATE.clientSearchResults;
+  if (!STATE.clientSearchQuery) { wrap.innerHTML = ""; return; }
+  if (!results.length) {
+    wrap.innerHTML = `<div class="results-list"><div class="results-empty">Nenhum cliente encontrado para "${escapeHtml(STATE.clientSearchQuery)}"</div></div>`;
+    return;
+  }
+  const moreNote = results.length === 100 ? `<div class="results-count">Mostrando 100 — refine a busca para ver mais</div>` : `<div class="results-count">${results.length} resultado(s)</div>`;
+  wrap.innerHTML = `<div class="results-list">${moreNote}${results.map(c => `<div class="res-item" onclick="selectClient('${escapeAttr(c)}')">${escapeHtml(c)}</div>`).join("")}</div>`;
+}
+
+function syncAtualFromAnterior(prefillEditable) {
+  for (let i = 0; i < STATE.dataAtual.length; i++) {
+    for (const key of Object.keys(STATE.dataAnterior)) {
+      if (ALWAYS_EDITABLE_IN_ATUAL.has(key)) continue; // skip ctr/pedido
+      const editable = isFieldEditableInAtual(key);
+      if (!editable) {
+        // locked: force copy from Anterior
+        STATE.dataAtual[i][key] = STATE.dataAnterior[key];
+      } else if (prefillEditable || !STATE.dataAtual[i][key]) {
+        // editable + empty (or prefill requested): copy Anterior as default
+        STATE.dataAtual[i][key] = STATE.dataAnterior[key];
+      }
+      // editable + has value: keep user's value
+    }
+  }
+}
+
+// ════════════ Top controls ════════════
+function setTipo(t) {
+  STATE.tipoOp = t;
+  ["COMPRA","VENDA"].forEach(v => {
+    const b = document.getElementById("btn-" + v);
+    if (b) b.className = "abtn sm" + (v === t ? " orange" : "");
+  });
+}
+
+function setDesmemb(n) {
+  if (n < 1) n = 1;
+  if (n > 10) n = 10;
+  if (n === STATE.desmembramento) return;
+  if (n > STATE.dataAtual.length) {
+    // Add new Atual(s), prefilled from Anterior
+    while (STATE.dataAtual.length < n) {
+      const newAt = JSON.parse(JSON.stringify(STATE.dataAnterior));
+      newAt.ctr = ""; newAt.pedido = "";
+      STATE.dataAtual.push(newAt);
+    }
+  } else {
+    STATE.dataAtual = STATE.dataAtual.slice(0, n);
+  }
+  STATE.desmembramento = n;
+  document.getElementById("desm-val").textContent = n;
+  document.getElementById("desm-minus").disabled = n <= 1;
+  document.getElementById("desm-plus").disabled = n >= 10;
+  renderColumns();
+}
+
+function renderChangeChecks() {
+  const container = document.getElementById("chk-changes");
+  container.innerHTML = CHANGE_OPTS.map(opt => {
+    const checked = STATE.changedKeys.has(opt.key);
+    return `<label class="chk-pill ${checked ? "checked" : ""}" data-key="${opt.key}" onclick="toggleChange('${opt.key}')">
+      <span class="check-mark">✓</span>${escapeHtml(opt.label)}
+    </label>`;
+  }).join("");
+}
+
+function toggleChange(key) {
+  if (STATE.changedKeys.has(key)) STATE.changedKeys.delete(key);
+  else STATE.changedKeys.add(key);
+  renderChangeChecks();
+  // When a field becomes locked, reset its value in all Atual to match Anterior
+  syncAtualFromAnterior(false);
+  renderColumns();
+}
+
+function clearF() {
+  STATE.dataAnterior = blank();
+  STATE.dataAtual = STATE.dataAtual.map(() => blank());
+  STATE.changedKeys = new Set();
+  STATE.contractsForClient = [];
+  STATE.clientSearchResults = [];
+  STATE.clientSearchQuery = "";
+  const m = document.getElementById("motivo"); if (m) m.value = "";
+  renderChangeChecks();
+  renderColumns();
+}
+
+// ════════════ Column rendering ════════════
+function uf(target, key, val) {
+  // target = "ant" or "at-N"
+  if (target === "ant") {
+    STATE.dataAnterior[key] = val;
+    // If this field is LOCKED in Atual (no editable checkbox), propagate to all Atual
+    if (!isFieldEditableInAtual(key) && !ALWAYS_EDITABLE_IN_ATUAL.has(key)) {
+      for (let i = 0; i < STATE.dataAtual.length; i++) STATE.dataAtual[i][key] = val;
+      // Update Atual display
+      for (let i = 0; i < STATE.dataAtual.length; i++) {
+        const el = document.getElementById(`at-${i}-${key}-disp`);
+        if (el) el.textContent = val || "—";
+      }
+    }
+  } else {
+    const idx = parseInt(target.substring(3));
+    STATE.dataAtual[idx][key] = val;
+  }
+  // Recompute Vol. a Entregar if relevant
+  if (key === "volContrato" || key === "volEntregue") {
+    const el = document.getElementById(target === "ant" ? "ant-va" : `at-${target.substring(3)}-va`);
+    if (el) el.textContent = computeVA(target === "ant" ? STATE.dataAnterior : STATE.dataAtual[parseInt(target.substring(3))]);
+  }
+}
+
+function computeVA(d) {
+  const a = pNum(d.volContrato), b = pNum(d.volEntregue);
+  const r = a - b;
+  return r > 0 ? r.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "—";
+}
+
+function spAnt(val) {
+  STATE.dataAnterior.pago = val;
+  if (!isFieldEditableInAtual("pago")) {
+    for (let i = 0; i < STATE.dataAtual.length; i++) STATE.dataAtual[i].pago = val;
+  }
+  renderColumns();
+}
+function spAt(idx, val) { STATE.dataAtual[idx].pago = val; renderColumns(); }
+
+function inpAnt(key, ph, tp) {
+  return `<input type="${tp||"text"}" value="${escapeAttr(STATE.dataAnterior[key])}" placeholder="${ph||""}" oninput="uf('ant','${key}',this.value)">`;
+}
+function inpAt(idx, key, ph, tp) {
+  return `<input type="${tp||"text"}" value="${escapeAttr(STATE.dataAtual[idx][key])}" placeholder="${ph||""}" oninput="uf('at-${idx}','${key}',this.value)">`;
+}
+
+function buildAnteriorColumn() {
+  const d = STATE.dataAnterior;
+  const hasClient = !!d.fornecedor;
+  const hasContract = !!d.ctr;
+
+  // Client section: either search box OR selected chip
+  const clientSection = hasClient
+    ? `<div class="frow" style="background: var(--surface-2);">
+        <span class="flbl">Cliente (col K)</span>
+        <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+          <span class="chip">
+            ${escapeHtml(d.fornecedor)}
+            <span class="chip-x" title="Trocar cliente" onclick="clearClientSelection()">✕</span>
+          </span>
+        </div>
+      </div>`
+    : `<div class="frow" style="background: var(--surface-2);">
+        <span class="flbl">Cliente — digite e clique 🔍</span>
+        <div class="search-row">
+          <input id="client-search-input" type="text" class="search-input" placeholder="Ex: Kleber" value="${escapeAttr(STATE.clientSearchQuery)}" onkeydown="onClientSearchKeydown(event)">
+          <button class="lupa-btn" onclick="searchClients()" title="Buscar">🔍</button>
+        </div>
+        <div id="client-results-wrap"></div>
+      </div>`;
+
+  // Contract section: native select, enabled only when client is chosen
+  const contractOptions = STATE.contractsForClient.length
+    ? STATE.contractsForClient.map(c => `<option value="${escapeAttr(c)}" ${c === d.ctr ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")
+    : "";
+  const contractSection = `<div class="frow" style="background: var(--surface-2);">
+    <span class="flbl">Contrato — 8 primeiros da col. BM</span>
+    <select class="contract-select" onchange="onContractSelect(this.value)" ${!hasClient ? "disabled" : ""}>
+      <option value="">${!hasClient ? "— Selecione o cliente primeiro —" : "— Selecione o contrato —"}</option>
+      ${contractOptions}
+    </select>
+    ${hasClient && STATE.contractsForClient.length ? `<div style="font-size: 10px; color: var(--text-3); margin-top: 3px;">${STATE.contractsForClient.length} contrato(s) deste cliente</div>` : ""}
+  </div>`;
+
+  return `<div style="border: 0.5px solid var(--border-strong); border-radius: 4px; overflow: hidden; background: var(--surface);">
+  <div class="col-hdr" style="background: #374151;"><span>Posição Anterior</span></div>
+
+  ${clientSection}
+  ${contractSection}
+
+  <div class="frow"><span class="flbl">Pedido de Venda</span>
+    <span class="val-display">${escapeHtml(d.pedido) || "—"}</span>
+  </div>
+  <div class="two-c">
+    <div class="lft"><span class="flbl">Vol. Contrato (TM)</span>${inpAnt("volContrato","0,000")}</div>
+    <div class="rgt"><span class="flbl">Vol. Entregue (TM)</span>${inpAnt("volEntregue","0,000")}</div>
+  </div>
+  <div class="frow"><span class="flbl">Vol. a Entregar (TM)</span><span id="ant-va" style="font-size: 12px; color: var(--info-text); font-weight: 500;">${computeVA(d)}</span></div>
+  <div class="frow"><span class="flbl">Produto</span>${inpAnt("produto","Ex: NPK 20 00 20")}</div>
+  <div class="frow"><span class="flbl">Contrato Está Pago</span>
+    <div style="display: flex; gap: 5px; margin-top: 2px;">
+      <button class="pbtn ${d.pago === "SIM" ? "sim" : ""}" onclick="spAnt('SIM')">SIM</button>
+      <button class="pbtn ${d.pago === "NÃO" ? "nao" : ""}" onclick="spAnt('NÃO')">NÃO</button>
+    </div>
+  </div>
+  <div class="frow"><span class="flbl">Modal / Superfície</span>
+    <div style="display: flex; gap: 4px; margin-top: 2px;">
+      <select onchange="uf('ant','modal',this.value)" style="font-size: 11px; padding: 2px 4px; border: 0.5px solid var(--border-strong); border-radius: 3px;">
+        ${["CIF","FOB","CIF+FRETE","FAS"].map(v => `<option ${d.modal === v ? "selected" : ""}>${v}</option>`).join("")}
+      </select>
+      <select onchange="uf('ant','superficie',this.value)" style="font-size: 11px; padding: 2px 4px; border: 0.5px solid var(--border-strong); border-radius: 3px;">
+        ${["ASFALTO","CHÃO","ASFALTO/CHÃO"].map(v => `<option ${d.superficie === v ? "selected" : ""}>${v}</option>`).join("")}
+      </select>
+    </div>
+  </div>
+  <div class="two-c">
+    <div class="lft"><span class="flbl">Valor Frete</span>${inpAnt("valorFrete","N/A")}</div>
+    <div class="rgt"><span class="flbl">Moeda</span>${inpAnt("moeda","BRL / USD")}</div>
+  </div>
+  <div class="two-c">
+    <div class="lft"><span class="flbl">Preço do Produto</span>${inpAnt("preco","0,00")}</div>
+    <div class="rgt"><span class="flbl">Início Entrega</span>${inpAnt("inicioEntrega","DD/MM/AAAA")}</div>
+  </div>
+  <div class="two-c">
+    <div class="lft"><span class="flbl">Embalagem</span>${inpAnt("embalagem","BIG BAG")}</div>
+    <div class="rgt"><span class="flbl">Fim Entrega</span>${inpAnt("finalEntrega","DD/MM/AAAA")}</div>
+  </div>
+  <div class="frow"><span class="flbl">Vencimento</span>${inpAnt("dataPagamento","DD/MM/AAAA")}</div>
+</div>`;
+}
+
+function renderAtualField(idx, fieldKey, label, placeholder, isDouble, doubleKey, doubleLabel, doublePh) {
+  const d = STATE.dataAtual[idx];
+  const ant = STATE.dataAnterior;
+  const editable = isFieldEditableInAtual(fieldKey);
+  // Determine display value: editable shows current Atual value (which is prefilled w/ Anterior); locked shows Anterior
+  function fieldHtml(key, lbl, ph) {
+    const ed = isFieldEditableInAtual(key);
+    if (ed) {
+      return `<span class="flbl">${escapeHtml(lbl)}</span><input type="text" id="at-${idx}-${key}" value="${escapeAttr(d[key])}" placeholder="${ph||""}" oninput="uf('at-${idx}','${key}',this.value)">`;
+    } else {
+      return `<span class="flbl">${escapeHtml(lbl)}</span><span class="val-display" id="at-${idx}-${key}-disp">${escapeHtml(ant[key]) || "—"}</span>`;
+    }
+  }
+  function rowClass(...keys) {
+    const anyEd = keys.some(k => isFieldEditableInAtual(k));
+    return anyEd ? "editable" : "locked";
+  }
+  if (isDouble) {
+    return `<div class="two-c">
+      <div class="lft ${isFieldEditableInAtual(fieldKey) ? "editable" : "locked"}">${fieldHtml(fieldKey, label, placeholder)}</div>
+      <div class="rgt ${isFieldEditableInAtual(doubleKey) ? "editable" : "locked"}">${fieldHtml(doubleKey, doubleLabel, doublePh)}</div>
+    </div>`;
+  }
+  return `<div class="frow ${editable ? "editable" : "locked"}">${fieldHtml(fieldKey, label, placeholder)}</div>`;
+}
+
+function buildAtualColumn(idx) {
+  const d = STATE.dataAtual[idx];
+  const ant = STATE.dataAnterior;
+  const isMultiple = STATE.desmembramento > 1;
+  const title = isMultiple ? `Posição Atual ${idx + 1}` : "Posição Atual";
+
+  // Pago is special (button toggle)
+  const pagoEditable = isFieldEditableInAtual("pago");
+  const pagoHtml = pagoEditable
+    ? `<div style="display: flex; gap: 5px; margin-top: 2px;">
+        <button class="pbtn ${d.pago === "SIM" ? "sim" : ""}" onclick="spAt(${idx},'SIM')">SIM</button>
+        <button class="pbtn ${d.pago === "NÃO" ? "nao" : ""}" onclick="spAt(${idx},'NÃO')">NÃO</button>
+      </div>`
+    : `<span class="val-display">${escapeHtml(ant.pago) || "—"}</span>`;
+
+  // Modal/Superfície are special (selects)
+  const modalEditable = isFieldEditableInAtual("modal");
+  const modalHtml = modalEditable
+    ? `<div style="display: flex; gap: 4px; margin-top: 2px;">
+        <select onchange="uf('at-${idx}','modal',this.value)" style="font-size: 11px; padding: 2px 4px; border: 0.5px solid var(--border-strong); border-radius: 3px;">
+          ${["CIF","FOB","CIF+FRETE","FAS"].map(v => `<option ${d.modal === v ? "selected" : ""}>${v}</option>`).join("")}
+        </select>
+        <select onchange="uf('at-${idx}','superficie',this.value)" style="font-size: 11px; padding: 2px 4px; border: 0.5px solid var(--border-strong); border-radius: 3px;">
+          ${["ASFALTO","CHÃO","ASFALTO/CHÃO"].map(v => `<option ${d.superficie === v ? "selected" : ""}>${v}</option>`).join("")}
+        </select>
+      </div>`
+    : `<span class="val-display">${escapeHtml(ant.modal) || "—"} / ${escapeHtml(ant.superficie) || "—"}</span>`;
+
+  return `<div style="border: 0.5px solid var(--border-strong); border-radius: 4px; overflow: hidden; background: var(--surface);">
+  <div class="col-hdr" style="background: #1e3a5f;"><span>${title}</span></div>
+
+  <div class="two-c">
+    <div class="lft editable"><span class="flbl">Novo Contrato (CTR)</span><input type="text" value="${escapeAttr(d.ctr)}" placeholder="Novo CTR" oninput="uf('at-${idx}','ctr',this.value)"></div>
+    <div class="rgt editable"><span class="flbl">Novo Pedido</span><input type="text" value="${escapeAttr(d.pedido)}" placeholder="Novo Pedido" oninput="uf('at-${idx}','pedido',this.value)"></div>
+  </div>
+
+  <div class="frow locked"><span class="flbl">Cliente</span><span class="val-display">${escapeHtml(ant.fornecedor) || "—"}</span></div>
+
+  ${renderAtualField(idx, "volContrato", "Vol. Contrato (TM)", "0,000", true, "volEntregue", "Vol. Entregue (TM)", "0,000")}
+
+  <div class="frow"><span class="flbl">Vol. a Entregar (TM)</span><span id="at-${idx}-va" style="font-size: 12px; color: var(--info-text); font-weight: 500;">${computeVA(d)}</span></div>
+
+  ${renderAtualField(idx, "produto", "Produto", "Ex: NPK")}
+
+  <div class="frow ${pagoEditable ? "editable" : "locked"}"><span class="flbl">Contrato Está Pago</span>${pagoHtml}</div>
+
+  <div class="frow ${modalEditable ? "editable" : "locked"}"><span class="flbl">Modal / Superfície</span>${modalHtml}</div>
+
+  ${renderAtualField(idx, "valorFrete", "Valor Frete", "N/A", true, "moeda", "Moeda", "BRL / USD")}
+  ${renderAtualField(idx, "preco", "Preço do Produto", "0,00", true, "inicioEntrega", "Início Entrega", "DD/MM/AAAA")}
+  ${renderAtualField(idx, "embalagem", "Embalagem", "BIG BAG", true, "finalEntrega", "Fim Entrega", "DD/MM/AAAA")}
+  ${renderAtualField(idx, "dataPagamento", "Vencimento", "DD/MM/AAAA")}
+</div>`;
+}
+
+function renderColumns() {
+  const cols = STATE.desmembramento + 1;
+  const grid = document.getElementById("cols-grid");
+  grid.style.gridTemplateColumns = `repeat(${cols}, minmax(240px, 1fr))`;
+
+  let html = buildAnteriorColumn();
+  for (let i = 0; i < STATE.desmembramento; i++) html += buildAtualColumn(i);
+  grid.innerHTML = html;
+
+  // Re-populate client search results if any are still active
+  renderClientSearchArea();
+
+  // Hint bar
+  const hint = document.getElementById("hint-bar");
+  if (!STATE.dataAnterior.ctr) {
+    hint.innerHTML = `<div class="badge info" style="padding: 7px 12px;">👈 Comece pesquisando o cliente na Posição Anterior</div>`;
+  } else if (STATE.changedKeys.size === 0) {
+    hint.innerHTML = `<div class="badge warn" style="padding: 7px 12px;">⚠ Marque acima o que vai mudar — os campos selecionados ficam editáveis no(s) quadro(s) atual(is)</div>`;
+  } else {
+    hint.innerHTML = "";
+  }
+}
+
+// ════════════ Init ════════════
+async function init() {
+  renderChangeChecks();
+  renderColumns();
+  setDesmemb(1);
+
+  if (isMsalConfigured()) {
+    msalInstance = initMsal();
+    try {
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) {
+        try { await getToken(); setUserInfo(accounts[0]); showScreen("s-files"); loadFiles(); return; } catch (e) {}
+      }
+    } catch (e) {}
+    showScreen("s-login");
+  } else {
+    document.getElementById("user-info").innerHTML = '<span class="badge warn">⚠ Azure AD não configurado</span>';
+    goManualUpload();
+  }
+}
+window.addEventListener("DOMContentLoaded", init);
+</script>
+
+</body>
+</html>
